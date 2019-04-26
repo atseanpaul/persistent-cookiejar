@@ -29,13 +29,13 @@ func (j *Jar) Save() error {
 	return j.save(time.Now())
 }
 
-// MarshalJSON implements json.Marshaler by encoding all persistent cookies
+// MarshalJSON implements json.Marshaler by encoding all cookies
 // currently in the jar.
 func (j *Jar) MarshalJSON() ([]byte, error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	// Marshaling entries can never fail.
-	data, _ := json.Marshal(j.allPersistentEntries())
+	data, _ := json.Marshal(j.allEntries())
 	return data, nil
 }
 
@@ -124,22 +124,20 @@ func (j *Jar) mergeFrom(r io.Reader) error {
 // as a JSON array.
 func (j *Jar) writeTo(w io.Writer) error {
 	encoder := json.NewEncoder(w)
-	entries := j.allPersistentEntries()
+	entries := j.allEntries()
 	if err := encoder.Encode(entries); err != nil {
 		return err
 	}
 	return nil
 }
 
-// allPersistentEntries returns all the entries in the jar, sorted by primarly by canonical host
+// allEntries returns all the entries in the jar, sorted by primarly by canonical host
 // name and secondarily by path length.
-func (j *Jar) allPersistentEntries() []entry {
+func (j *Jar) allEntries() []entry {
 	var entries []entry
 	for _, submap := range j.entries {
 		for _, e := range submap {
-			if e.Persistent {
-				entries = append(entries, e)
-			}
+			entries = append(entries, e)
 		}
 	}
 	sort.Sort(byCanonicalHost{entries})

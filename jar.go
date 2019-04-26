@@ -144,7 +144,6 @@ type entry struct {
 	Path       string
 	Secure     bool
 	HttpOnly   bool
-	Persistent bool
 	HostOnly   bool
 	Expires    time.Time
 	Creation   time.Time
@@ -599,7 +598,6 @@ func (j *Jar) newEntry(c *http.Cookie, now time.Time, defPath, host string) (e e
 	}
 	// MaxAge takes precedence over Expires.
 	if c.MaxAge != 0 {
-		e.Persistent = true
 		e.Expires = now.Add(time.Duration(c.MaxAge) * time.Second)
 		if c.MaxAge < 0 {
 			return e, nil
@@ -607,7 +605,6 @@ func (j *Jar) newEntry(c *http.Cookie, now time.Time, defPath, host string) (e e
 	} else if c.Expires.IsZero() {
 		e.Expires = endOfTime
 	} else {
-		e.Persistent = true
 		e.Expires = c.Expires
 		if !c.Expires.After(now) {
 			return e, nil
